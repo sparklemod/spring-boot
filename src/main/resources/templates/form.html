@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:with="lang=${#locale.language}" th:lang="${lang}">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width" , initial-scale="1.0">
+    <meta name="viewport" content="width=device-width" initial-scale="1.0">
     <meta http-equiv="X-UA-Compatible" content="ie-edge">
     <title>User</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -32,11 +32,12 @@
         <div class="mb-3">
             <label for="email">Email</label>
             <input type="text" class="form-control" id="email" th:field="*{email}" placeholder="Enter email" required>
-            <div th:if="${#fields.hasErrors('email')}" class="text-danger small" th:text="${#fields.errors('email')}"></div>
+            <div class="text-danger small" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+<!--            <div th:if="${#fields.hasErrors('email')}" class="text-danger small" th:text="${#fields.errors('email')}"></div>-->
         </div>
 
         <!-- Buttons -->
-        <button class="btn btn-secondary" type="submit" th:text="${user.id} ? 'Save' : 'Create'"></button>
+        <button class="btn btn-secondary" type="submit">Save</button>
         <a class="btn btn-light border-dark" href="/users">Cancel</a>
     </form>
 </div>

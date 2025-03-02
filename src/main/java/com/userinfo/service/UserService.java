@@ -2,6 +2,7 @@ package com.userinfo.service;
 
 import com.userinfo.model.User;
 import com.userinfo.repository.UserRepository;
+import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,27 +11,33 @@ import java.util.List;
 public class UserService {
     private final UserRepository userRepository;
 
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserService(UserRepository UserRepository) {
+        this.userRepository = UserRepository;
+    }
+
+    @PostConstruct
+    private void loadData() {
+        userRepository.saveAll(List.of(
+                new User("Catherine", "Johnson", "catherine@example.com"),
+                new User("Bob", "Smith", "bob@example.com"),
+                new User("Charlie", "Williams", "charlie@exmple.com"),
+                new User("Ada", "Wong", "ada231@example.com")
+        ));
     }
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    public void createOrUpdateUser(User user) {
-        if (user.getId() == null) {
-            userRepository.create(user);
-        } else {
-            userRepository.update(user);
-        }
+    public void saveUser(User user) {
+        userRepository.save(user);
     }
 
     public User getUser(Long id) {
-        return userRepository.findById(id);
+        return userRepository.findById(id).orElse(null);
     }
 
-    public boolean deleteUser(Long id) {
-        return userRepository.delete(id);
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
     }
 }

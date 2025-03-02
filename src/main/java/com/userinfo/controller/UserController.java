@@ -2,14 +2,12 @@ package com.userinfo.controller;
 
 import com.userinfo.model.User;
 import com.userinfo.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import javax.validation.Valid;
 
 @Controller
 @RequestMapping("/users")
@@ -34,43 +32,24 @@ public class UserController {
         return "form";
     }
 
-    @GetMapping("/edit/{id}")
-    public String editUser(@PathVariable(value = "id") long id, Model model,
-                                RedirectAttributes attributes) {
-        User user = userService.getUser(id);
-
-        if (null == user) {
-            attributes.addFlashAttribute("flashMessage", "User are not exists!");
-            return "redirect:/users";
-        }
-
-        model.addAttribute("user", user);
-        return "form";
-    }
-
-    @PostMapping()
-    public String saveUser(@ModelAttribute("user") @Valid User user, BindingResult bindingResult,
-                           RedirectAttributes attributes) {
-        if (bindingResult.hasErrors()) {
+    @PostMapping
+    public String saveUser(@Valid @ModelAttribute("user") User user, BindingResult result) {
+        if (result.hasErrors()) {
             return "form";
         }
-
-        boolean isNew = (user.getId() == null);
-        userService.createOrUpdateUser(user);
-
-        attributes.addFlashAttribute("flashMessage",
-                isNew ? "User successfully created!" : "User successfully updated!");
+        userService.saveUser(user);
         return "redirect:/users";
     }
 
-    @GetMapping("/delete")
-    public String deleteUser(@RequestParam(value = "id") long id, RedirectAttributes attributes) {
-        attributes.addFlashAttribute(
-                "flashMessage",
-                userService.deleteUser(id)
-                        ? "User successfully deleted!"
-                        : "User does not exist!");
+    @GetMapping("/edit/{id}")
+    public String editUserForm(@PathVariable Long id, Model model) {
+        model.addAttribute("user", userService.getUser(id));
+        return "form";
+    }
 
+    @GetMapping("/delete/{id}")
+    public String deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
         return "redirect:/users";
     }
 }

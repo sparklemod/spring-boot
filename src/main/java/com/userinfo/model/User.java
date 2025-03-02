@@ -1,7 +1,10 @@
 package com.userinfo.model;
 
-import javax.persistence.*;
-import javax.validation.constraints.Email;
+import jakarta.persistence.GeneratedValue;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+
 
 @Entity
 @Table(name = "user")
