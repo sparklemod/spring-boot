@@ -42,11 +42,12 @@ public class User implements UserDetails, CredentialsContainer {
     public User() {
     }
 
-    public User(String username, String password) {
+    public User(String name, String surname, String username, String password, Set<Role> roles) {
         this.name = name;
         this.surname = surname;
         this.username = username;
         this.password = password;
+        this.roles = roles;
     }
 
     @Override
