@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml" th:with="lang=${#locale.language}"
+<html xmlns:th="http://www.thymeleaf.org" th:with="lang=${#locale.language}"
       th:lang="${lang}">
 <head th:fragment="header">
     <meta charset="utf-8">
@@ -14,20 +14,11 @@
 
 <body>
 <nav th:fragment="navigation" class="navbar navbar-expand-lg navbar-dark bg-dark static-top">
-    <div class="container">
-        <div class="collapse navbar-collapse" id="navbarResponsive">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a sec:authorize="hasRole('ROLE_ADMIN')" th:href="@{/admin/list}" class="nav-link">Home</a>
-                    <a sec:authorize="hasRole('ROLE_USER') and not hasRole('ROLE_ADMIN')" th:href="@{/user}" class="nav-link">Home</a>
-                </li>
-                <li class="nav-item">
-                    <form th:action="@{/logout}" method="post" style="display:inline;">
-                        <button type="submit" class="btn btn-link nav-link" style="color: white; text-decoration: none;">Logout</button>
-                    </form>
-                </li>
-            </ul>
-        </div>
+    <div class="container-fluid">
+        <span class="navbar-text text-white"  th:text="${#authentication.principal.email} + ' with roles ' + ${#authentication.principal.roles}"></span>
+        <form th:action="@{/logout}" method="post" style="display:inline;">
+            <button type="submit" class="btn btn-link nav-link" style="color: white; text-decoration: none;">Logout</button>
+        </form>
     </div>
 </nav>
 
