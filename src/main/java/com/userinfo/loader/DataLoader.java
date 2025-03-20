@@ -1,4 +1,4 @@
-package com.userinfo.dataLoader;
+package com.userinfo.loader;
 
 import com.userinfo.model.Role;
 import com.userinfo.model.User;

@@ -1,52 +1,60 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 
-<head th:replace="layout :: header">
-    <title>User</title>
-</head>
+<div id="list-content" class="pt-3 tabcontent w-100">
+    <h5 class="ps-3 text-start" th:if="${route == 'edit'}">Edit user</h5>
+    <h5 class="ps-3 text-start" th:if="${route == 'add'}">Add new user</h5>
 
-<body>
-    <div th:replace="layout :: navigation"></div>
-
-    <div class="container mt-4">
-        <h1 class="mb-4">User</h1>
-
-        <form th:method="POST" th:action="@{/admin/save}" th:object="${user}">
+    <div class="tab-content-body">
+        <form class="save-form" th:method="POST" th:action="@{/admin/save}" th:object="${user}">
             <input type="hidden" th:field="*{id}">
 
             <!-- First Name -->
             <div class="mb-3">
                 <label for="name">Name</label>
                 <input type="text" class="form-control" id="name" th:field="*{name}" placeholder="Enter name" required>
-                <div th:if="${#fields.hasErrors('name')}" class="text-danger small" th:text="${#fields.errors('name')}"></div>
+                <div th:if="${#fields.hasErrors('name')}" class="text-danger small"
+                     th:text="${#fields.errors('name')}"></div>
             </div>
 
             <!-- Last Name -->
             <div class="mb-3">
-                <label for="last_name">Last name</label>
-                <input type="text" class="form-control" id="last_name" th:field="*{surname}" placeholder="Enter surname">
-                <div th:if="${#fields.hasErrors('surname')}" class="text-danger small" th:text="${#fields.errors('name')}"></div>
+                <label for="surname">Surname</label>
+                <input type="text" class="form-control" id="surname" th:field="*{surname}"
+                       placeholder="Enter surname">
+                <div th:if="${#fields.hasErrors('surname')}" class="text-danger small"
+                     th:text="${#fields.errors('name')}"></div>
             </div>
 
             <!-- Email -->
             <div class="mb-3">
                 <label for="email">Email</label>
-                <input type="text" class="form-control" id="email" th:field="*{email}" placeholder="Enter email" required>
+                <input type="text" class="form-control" id="email" th:field="*{email}" placeholder="Enter email"
+                       required>
                 <div class="text-danger small" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
-                <div th:if="${#fields.hasErrors('email')}" class="text-danger small" th:text="${#fields.errors('email')}"></div>
+                <div th:if="${#fields.hasErrors('email')}" class="text-danger small"
+                     th:text="${#fields.errors('email')}"></div>
             </div>
 
             <!-- Password -->
             <div class="mb-3">
                 <label for="password">Password</label>
-                <input type="password" class="form-control" id="password" th:field="*{password}" placeholder="Enter password" required>
-                <div th:if="${#fields.hasErrors('password')}" class="text-danger small" th:text="${#fields.errors('password')}"></div>
+                <input type="password" class="form-control" id="password" th:field="*{password}"
+                       placeholder="Enter password" required>
+                <div th:if="${#fields.hasErrors('password')}" class="text-danger small"
+                     th:text="${#fields.errors('password')}"></div>
             </div>
 
-            <!-- Buttons -->
-            <button class="btn btn-secondary" type="submit">Save</button>
-            <a class="btn btn-light border-dark" th:href="@{/admin/list}">Cancel</a>
+            <div class="mb-3">
+                <label for="select">Roles</label>
+                <select class="form-select" id='select'>
+                    <option selected>User</option>
+                    <option value="1">Admin</option>
+                </select>
+            </div>
+
+            <button class="btn btn-secondary btn-success" type="submit">Save</button>
         </form>
     </div>
-</body>
+</div>
 </html>

@@ -1,46 +1,45 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
-<head th:replace="layout :: header">
-    <title>User List</title>
-</head>
 
-<body>
-    <div th:replace="layout :: navigation"/>
+<div id="list-content" class="pt-3 tabcontent w-100">
+    <h5 class="ps-3 text-start">All Users</h5>
 
-    <div class="container mt-4">
-        <h1 class="mb-4">User list</h1>
-
-        <div class="pt-1" sec:authorize="hasRole('ROLE_ADMIN')">
-            <a th:href="@{/admin/add}" class="btn btn-info mb-2">Create user</a>
-        </div>
-
-        <table class="table table-striped">
-
-            <thead class="table-dark">
+    <div class="table-responsive tab-content-body">
+        <table class="table table-hover mb-0">
+            <thead>
             <tr>
-                <th scope="col">#</th>
+                <th scope="col">ID</th>
                 <th scope="col">Name</th>
                 <th scope="col">Surname</th>
                 <th scope="col">Email</th>
                 <th scope="col">Actions</th>
             </tr>
             </thead>
-
             <tbody>
-            <tr th:each="user, iterStat : ${users}">
-                <th scope="row" th:text="${iterStat.index + 1}"></th>
+            <tr th:each="user : ${users}">
+                <th scope="row" th:text="${user.id}" th:id="${user.id}"></th>
                 <td th:text="${user.name}"></td>
                 <td th:text="${user.surname}"></td>
                 <td th:text="${user.email}"></td>
-
                 <td>
-                    <a sec:authorize="hasRole('ROLE_ADMIN')" th:href="@{/admin/edit/{id}(id=${user.id})}" class="btn btn-secondary">Edit</a>
-                    <a sec:authorize="hasRole('ROLE_ADMIN')" th:href="@{/admin/delete/{id}(id=${user.id})}" onclick="return confirm('Удалить?')" class="btn btn-dark">Remove</a>
+                    <button sec:authorize="hasRole('ROLE_ADMIN')"
+                            type="button"
+                            class="btn btn-info btn-sm"
+                            onclick="openEditModal()">
+<!--                            th:onclick="openEditModal('${user.id}')">-->
+<!--                            th:attr="onclick=|openEditModal('${user.id}')|">-->
+                        Edit
+                    </button>
+<!--                    <a sec:authorize="hasRole('ROLE_ADMIN')"-->
+<!--                       th:href="@{/admin/edit/{id}(id=${user.id})}" class="btn btn-info btn-sm">Edit</a>-->
+                    <a sec:authorize="hasRole('ROLE_ADMIN')"
+                       th:href="@{/admin/delete/{id}(id=${user.id})}"
+                       onclick="return confirm('Удалить?')"
+                       class="btn btn-danger btn-sm">Remove</a>
                 </td>
             </tr>
             </tbody>
-
         </table>
     </div>
-</body>
+</div>
 </html>
