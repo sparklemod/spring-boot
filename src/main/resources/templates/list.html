@@ -5,7 +5,7 @@
     <h5 class="ps-3 text-start">All Users</h5>
 
     <div class="table-responsive tab-content-body">
-        <table class="table table-hover mb-0">
+        <table class="table table-hover mb-0" id="table">
             <thead>
             <tr>
                 <th scope="col">ID</th>
@@ -17,7 +17,7 @@
             </thead>
             <tbody>
             <tr th:each="user : ${users}">
-                <th scope="row" th:text="${user.id}" th:id="${user.id}"></th>
+                <th scope="row" th:text="${user.id}"></th>
                 <td th:text="${user.name}"></td>
                 <td th:text="${user.surname}"></td>
                 <td th:text="${user.email}"></td>
@@ -25,9 +25,8 @@
                     <button sec:authorize="hasRole('ROLE_ADMIN')"
                             type="button"
                             class="btn btn-info btn-sm"
-                            onclick="openEditModal()">
-<!--                            th:onclick="openEditModal('${user.id}')">-->
-<!--                            th:attr="onclick=|openEditModal('${user.id}')|">-->
+                            th:id="${user.id}"
+                            onclick="openEditModal(this.id)">
                         Edit
                     </button>
 <!--                    <a sec:authorize="hasRole('ROLE_ADMIN')"-->
