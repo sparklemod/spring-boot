@@ -3,7 +3,6 @@ package com.userinfo.model;
 import jakarta.persistence.GeneratedValue;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,7 +23,6 @@ public class User implements UserDetails, CredentialsContainer {
 
     private String surname;
 
-    @Email(message = "Invalid email format")
     @Column(nullable = false, unique = true)
     private String username;
 

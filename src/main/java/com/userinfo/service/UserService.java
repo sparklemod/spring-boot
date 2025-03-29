@@ -1,5 +1,6 @@
 package com.userinfo.service;
 
+import com.userinfo.model.Dto.UserDto;
 import com.userinfo.model.Role;
 import com.userinfo.model.User;
 import com.userinfo.repository.RoleRepository;
@@ -15,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -42,15 +44,25 @@ public class UserService implements UserDetailsService {
         return userRepository.findAll();
     }
 
-    public void saveUser(User user) {
-        if (user.getAuthorities().isEmpty()) {
-            Role userRole = roleRepository.findByName(Role.USER);
+    public void saveUser(UserDto user) {
 
-            user.getRoles().add(userRole);
+        System.out.println(user.getRoleIds().toString());
+        Set<Role> selectedRoles = roleRepository.findByIdIn(user.getRoleIds());
+        User existingUser = userRepository.findByUsername(user.getUsername()).orElseGet(User::new);
+
+        existingUser.setName(user.getName());
+        existingUser.setSurname(user.getSurname());
+        existingUser.setUsername(user.getUsername());
+        existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        if (selectedRoles.isEmpty()) {
+            Role userRole = roleRepository.findByName(Role.USER);
+            existingUser.getRoles().add(userRole);
+        } else {
+            existingUser.setRoles(selectedRoles);
         }
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
+        userRepository.save(existingUser);
     }
 
     public User getUser(Long id) {

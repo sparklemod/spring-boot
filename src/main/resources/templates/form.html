@@ -7,50 +7,45 @@
 
     <div class="tab-content-body">
         <form class="save-form" th:method="POST" th:action="@{/admin/save}" th:object="${user}">
-            <label th:if="${isEdit == 1}" for="id" >Id</label>
+            <label th:if="${isEdit == 1}" for="id">Id</label>
             <input class="form-control" readonly disabled type="text" id="id" th:if="${isEdit == 1}" th:field="*{id}">
 
-            <!-- First Name -->
             <div class="mb-3">
                 <label for="name">Name</label>
-                <input type="text" class="form-control" id="name" th:field="*{name}" placeholder="Enter name" required>
-                <div th:if="${#fields.hasErrors('name')}" class="text-danger small"
-                     th:text="${#fields.errors('name')}"></div>
+                <input type="text" class="form-control" name="name" id="name" th:field="*{name}"
+                       placeholder="Enter name" required>
+                <div th:if="${#fields.hasErrors('name')}" class="text-danger small" th:text="*{name}"></div>
             </div>
 
-            <!-- Last Name -->
             <div class="mb-3">
                 <label for="surname">Surname</label>
-                <input type="text" class="form-control" id="surname" th:field="*{surname}"
+                <input type="text" class="form-control" name="surname" id="surname" th:field="*{surname}"
                        placeholder="Enter surname">
                 <div th:if="${#fields.hasErrors('surname')}" class="text-danger small" th:errors="*{surname}"></div>
             </div>
 
-            <!-- Email -->
             <div class="mb-3">
                 <label for="email">Email</label>
-                <input type="text" class="form-control" id="email" th:field="*{email}" placeholder="Enter email"
+                <input type="text" class="form-control" name="username" id="email" th:field="*{username}"
+                       placeholder="Enter email"
                        required>
-<!--                <div th:if="${#fields.hasErrors('email')}" class="text-danger small"-->
-<!--                     th:text="${#fields.errors('email')}"></div>-->
-                <div class="text-danger small" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                <div class="text-danger small" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
             </div>
 
-            <!-- Password -->
             <div class="mb-3">
                 <label for="password">Password</label>
-                <input type="password" class="form-control" id="password" th:field="*{password}"
+                <input type="password" class="form-control" id="password" th:field="*{password}" name="password"
                        placeholder="Enter password" required>
-                <div th:if="${#fields.hasErrors('password')}" class="text-danger small"
-                     th:text="${#fields.errors('password')}"></div>
+                <div th:if="${#fields.hasErrors('password')}" class="text-danger small" th:errors="*{password}"></div>
             </div>
 
             <div class="mb-3">
                 <label for="form-select">Roles</label>
-                <select id="form-select" class="form-select" multiple>
-                    <option th:each="role : ${user.roles}"
+                <select id="form-select" class="form-select" multiple name="rolesIds" th:field="*{roleIds}">
+                    <option th:each="role : ${roles}"
                             th:value="${role.id}"
-                            th:text="${role.name}">
+                            th:text="${role.name}"
+                            th:selected="${user.roleIds != null && user.roleIds.contains(role.id)}">
                     </option>
                 </select>
             </div>

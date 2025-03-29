@@ -1,5 +1,6 @@
 package com.userinfo.controller;
 
+import com.userinfo.model.Dto.UserDto;
 import com.userinfo.model.Role;
 import com.userinfo.model.User;
 import com.userinfo.service.RoleService;
@@ -12,10 +13,9 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping()
@@ -49,28 +49,48 @@ public class UserController {
 
     @GetMapping(value = "/admin/add")
     public String addUserForm(Model model) {
-        model.addAttribute("user", new User());
+        model.addAttribute("user", new UserDto());
         model.addAttribute("isEdit", 0);
+        model.addAttribute("roles", roleService.getAllRoles());
         return "form";
     }
 
     @PostMapping("/admin/save")
-    public String saveUser(@Valid @ModelAttribute("user") User user, BindingResult result) {
+    public String saveUser(@Valid @ModelAttribute("user") UserDto userDTO, BindingResult result, Model model) {
         if (result.hasErrors()) {
             return "form";
         }
-//
-//        Set<Role> roles = new HashSet<>(roleService.getRolesByIds(roleIds));
-//        user.setRoles(roles);
-        userService.saveUser(user);
+
+        try {
+            userService.saveUser(userDTO);
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Unsuccessful: " + e.getMessage());
+            return "main";
+        }
+
         return "redirect:/main";
     }
 
     @GetMapping("/admin/edit/{id}")
     public String editUserForm(@PathVariable Long id, Model model) {
-        model.addAttribute("user", userService.getUser(id));
+
+
+        User user = userService.getUser(id);
+
+        UserDto userDto = new UserDto();
+        userDto.setId(user.getId());
+        userDto.setName(user.getName());
+        userDto.setSurname(user.getSurname());
+        userDto.setUsername(user.getUsername());
+
+        userDto.setRoleIds(user.getRoles().stream()
+                               .map(Role::getId)
+                               .collect(Collectors.toList()));
+
+        model.addAttribute("user", userDto);
         model.addAttribute("isEdit", 1);
         model.addAttribute("roles", roleService.getAllRoles());
+
         return "form";
     }
 
