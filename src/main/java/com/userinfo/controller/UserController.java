@@ -1,7 +1,6 @@
 package com.userinfo.controller;
 
 import com.userinfo.model.Dto.UserDto;
-import com.userinfo.model.Role;
 import com.userinfo.model.User;
 import com.userinfo.service.RoleService;
 import com.userinfo.service.UserService;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping()
@@ -73,21 +71,7 @@ public class UserController {
 
     @GetMapping("/admin/edit/{id}")
     public String editUserForm(@PathVariable Long id, Model model) {
-
-
-        User user = userService.getUser(id);
-
-        UserDto userDto = new UserDto();
-        userDto.setId(user.getId());
-        userDto.setName(user.getName());
-        userDto.setSurname(user.getSurname());
-        userDto.setUsername(user.getUsername());
-
-        userDto.setRoleIds(user.getRoles().stream()
-                               .map(Role::getId)
-                               .collect(Collectors.toList()));
-
-        model.addAttribute("user", userDto);
+        model.addAttribute("user", userService.getUserDto(id));
         model.addAttribute("isEdit", 1);
         model.addAttribute("roles", roleService.getAllRoles());
 

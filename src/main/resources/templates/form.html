@@ -35,7 +35,8 @@
             <div class="mb-3">
                 <label for="password">Password</label>
                 <input type="password" class="form-control" id="password" th:field="*{password}" name="password"
-                       placeholder="Enter password" required>
+                       placeholder="Enter password" th:attr="required=${isEdit == 0}">
+                <small class="text-muted">If need to change</small>
                 <div th:if="${#fields.hasErrors('password')}" class="text-danger small" th:errors="*{password}"></div>
             </div>
 

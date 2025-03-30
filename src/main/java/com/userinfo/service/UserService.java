@@ -17,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -33,7 +34,9 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return userRepository
+                .findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
     public Optional<User> findUserByUsername(String username) {
@@ -44,16 +47,17 @@ public class UserService implements UserDetailsService {
         return userRepository.findAll();
     }
 
-    public void saveUser(UserDto user) {
+    public void saveUser(UserDto userDto) {
+        Set<Role> selectedRoles = roleRepository.findByIdIn(userDto.getRoleIds());
+        User existingUser = userRepository.findByUsername(userDto.getUsername()).orElseGet(User::new);
 
-        System.out.println(user.getRoleIds().toString());
-        Set<Role> selectedRoles = roleRepository.findByIdIn(user.getRoleIds());
-        User existingUser = userRepository.findByUsername(user.getUsername()).orElseGet(User::new);
+        existingUser.setName(userDto.getName());
+        existingUser.setSurname(userDto.getSurname());
+        existingUser.setUsername(userDto.getUsername());
 
-        existingUser.setName(user.getName());
-        existingUser.setSurname(user.getSurname());
-        existingUser.setUsername(user.getUsername());
-        existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
+        if (userDto.getPassword() != null && !userDto.getPassword().isEmpty()) {
+            existingUser.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        }
 
         if (selectedRoles.isEmpty()) {
             Role userRole = roleRepository.findByName(Role.USER);
@@ -65,8 +69,23 @@ public class UserService implements UserDetailsService {
         userRepository.save(existingUser);
     }
 
-    public User getUser(Long id) {
-        return userRepository.findById(id).orElse(null);
+    public UserDto getUserDto(Long id) {
+        Optional<User> userOpt = userRepository.findById(id);
+
+        if (userOpt.isEmpty()) {
+            return null;
+        }
+
+        User user = userOpt.get();
+        UserDto userDto = new UserDto();
+        userDto.setId(user.getId());
+        userDto.setName(user.getName());
+        userDto.setSurname(user.getSurname());
+        userDto.setUsername(user.getUsername());
+        userDto.setPassword(user.getPassword());
+        userDto.setRoleIds(user.getRoles().stream().map(Role::getId).collect(Collectors.toList()));
+
+        return userDto;
     }
 
     public void deleteUser(Long id) {

@@ -1,6 +1,5 @@
 package com.userinfo.controller;
 
-import com.userinfo.model.Role;
 import com.userinfo.model.User;
 import com.userinfo.service.UserService;
 import org.springframework.security.core.Authentication;
