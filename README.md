@@ -8,7 +8,12 @@
 Таблица и начальные данные создаются автоматически
 
 ![ALT TEXT](samples/main.png)
+
+Редактирование
 ![ALT TEXT](samples/edit.png)
+Создание
 ![ALT TEXT](samples/create.png)
+Страница для пользователя
 ![ALT TEXT](samples/user.png)
+Форма авторизации
 ![ALT TEXT](samples/login.png)
