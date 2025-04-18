@@ -5,82 +5,82 @@ import com.userinfo.model.User;
 import com.userinfo.service.RoleService;
 import com.userinfo.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
 
 @Controller
-@RequestMapping()
 public class UserController {
 
     private final UserService userService;
-    private final RoleService roleService;
 
-    public UserController(UserService userService, RoleService roleService) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.roleService = roleService;
+    }
+
+    //    GET /users (список)
+    //    GET /user (текущий пользователь)
+    //    GET /users/{id} (карточка юзера)
+    //    POST /user (создание)
+    //    PUT /user/{id} (обновление / создание)
+    //    GET /roles (список ролей)
+
+    @GetMapping("/users")
+    public List<User> listUsers() {
+        return userService.getAllUsers();
     }
 
     @GetMapping("/user")
-    public String listUser(Model model) {
+    public User listUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Optional<User> user = userService.findUserByUsername(auth.getName());
+
         if (user.isEmpty()) {
-            return "redirect:/login";
+            throw new UsernameNotFoundException("User " + auth.getName() + " not found");
         }
 
-        model.addAttribute("users", List.of(user.get()));
-        return "list";
+        return user.get();
     }
 
-    @GetMapping("/admin/list")
-    public String listUsers(Model model) {
-        model.addAttribute("users", userService.getAllUsers());
-        return "list";
+    @GetMapping("/users/{id}")
+    public UserDto getUser(@PathVariable Long id) {
+        return userService.getUserDto(id);
     }
 
-    @GetMapping(value = "/admin/add")
-    public String addUserForm(Model model) {
-        model.addAttribute("user", new UserDto());
-        model.addAttribute("isEdit", 0);
-        model.addAttribute("roles", roleService.getAllRoles());
-        return "form";
-    }
-
-    @PostMapping("/admin/save")
-    public String saveUser(@Valid @ModelAttribute("user") UserDto userDTO, BindingResult result, Model model) {
-        if (result.hasErrors()) {
-            return "form";
-        }
-
+    @PostMapping("/user")
+    public ResponseEntity<String> addUser(@Valid @ModelAttribute("user") UserDto userDTO, Model model) {
         try {
-            userService.saveUser(userDTO);
+            userService.addUser(userDTO);
         } catch (Exception e) {
-            model.addAttribute("errorMessage", "Unsuccessful: " + e.getMessage());
-            return "main";
+            model.addAttribute("errorMessage", e.getMessage());
         }
 
-        return "redirect:/main";
+        return new ResponseEntity<>("User saved", HttpStatus.CREATED);
     }
 
-    @GetMapping("/admin/edit/{id}")
-    public String editUserForm(@PathVariable Long id, Model model) {
-        model.addAttribute("user", userService.getUserDto(id));
-        model.addAttribute("isEdit", 1);
-        model.addAttribute("roles", roleService.getAllRoles());
 
-        return "form";
+    @PutMapping(value = "/user/{id}")
+    public ResponseEntity<String> editUser(@Valid @ModelAttribute("user") UserDto userDTO, Model model) {
+        try {
+            userService.editUser(userDTO);
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+        }
+
+        return new ResponseEntity<>("User saved", HttpStatus.ACCEPTED);
     }
 
     @GetMapping("/admin/delete/{id}")
-    public String deleteUser(@PathVariable Long id) {
+    public ResponseEntity<String> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
-        return "redirect:/main";
+        return new ResponseEntity<>("Success", HttpStatus.OK);
     }
 }

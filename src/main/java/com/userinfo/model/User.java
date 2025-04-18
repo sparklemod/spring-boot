@@ -30,11 +30,7 @@ public class User implements UserDetails, CredentialsContainer {
     private String password;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
+    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
     public User() {
@@ -138,11 +134,6 @@ public class User implements UserDetails, CredentialsContainer {
 
     @Override
     public String toString() {
-        return "User {" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", surname='" + surname + '\'' +
-                ", email='" + username + '\'' +
-                '}';
+        return "User {" + "id=" + id + ", name='" + name + '\'' + ", surname='" + surname + '\'' + ", email='" + username + '\'' + '}';
     }
 }

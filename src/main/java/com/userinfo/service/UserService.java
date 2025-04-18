@@ -47,36 +47,39 @@ public class UserService implements UserDetailsService {
         return userRepository.findAll();
     }
 
-    public void saveUser(UserDto userDto) {
-        Set<Role> selectedRoles = roleRepository.findByIdIn(userDto.getRoleIds());
-        User existingUser = userRepository.findByUsername(userDto.getUsername()).orElseGet(User::new);
+    public void addUser(UserDto userDto) throws Exception {
+        Optional<User> existingUser = userRepository.findByUsername(userDto.getUsername());
+        if (existingUser.isPresent()) {
+            throw new Exception("This username already existed");
+        }
 
-        existingUser.setName(userDto.getName());
-        existingUser.setSurname(userDto.getSurname());
-        existingUser.setUsername(userDto.getUsername());
+        if (userDto.getPassword() == null || userDto.getPassword().isEmpty()) {
+            throw new Exception("Enter password");
+        }
+
+        saveUser(userDto, new User());
+    }
+
+    public void editUser(UserDto userDto) throws Exception {
+        User existingUser = userRepository
+                .findById(userDto.getId())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        Optional<User> sameUsernameUser = userRepository.findByUsername(userDto.getUsername());
+        if (sameUsernameUser.isPresent()) {
+            throw new Exception("This username already existed");
+        }
 
         if (userDto.getPassword() != null && !userDto.getPassword().isEmpty()) {
             existingUser.setPassword(passwordEncoder.encode(userDto.getPassword()));
         }
 
-        if (selectedRoles.isEmpty()) {
-            Role userRole = roleRepository.findByName(Role.USER);
-            existingUser.getRoles().add(userRole);
-        } else {
-            existingUser.setRoles(selectedRoles);
-        }
-
-        userRepository.save(existingUser);
+        saveUser(userDto, existingUser);
     }
 
     public UserDto getUserDto(Long id) {
-        Optional<User> userOpt = userRepository.findById(id);
+        User user = userRepository.findById(id).orElseThrow(() ->  new UsernameNotFoundException("User not found"));
 
-        if (userOpt.isEmpty()) {
-            return null;
-        }
-
-        User user = userOpt.get();
         UserDto userDto = new UserDto();
         userDto.setId(user.getId());
         userDto.setName(user.getName());
@@ -90,5 +93,22 @@ public class UserService implements UserDetailsService {
 
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
+    }
+
+    private void saveUser(UserDto userDto, User user) {
+        Set<Role> selectedRoles = roleRepository.findByIdIn(userDto.getRoleIds());
+
+        user.setName(userDto.getName());
+        user.setSurname(userDto.getSurname());
+        user.setUsername(userDto.getUsername());
+
+        if (selectedRoles.isEmpty()) {
+            Role userRole = roleRepository.findByName(Role.USER);
+            user.getRoles().add(userRole);
+        } else {
+            user.setRoles(selectedRoles);
+        }
+
+        userRepository.save(user);
     }
 }
