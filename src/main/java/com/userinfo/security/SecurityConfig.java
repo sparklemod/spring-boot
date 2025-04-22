@@ -32,10 +32,9 @@ public class SecurityConfig  {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login").permitAll()
-                        .requestMatchers("/api/get-current-user-info").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/api/**").hasRole("ADMIN")
-                        .requestMatchers("/index").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/index", "/api/get-current-user-info").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
