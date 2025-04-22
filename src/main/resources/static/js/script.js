@@ -2,25 +2,6 @@ $(document).ready(function(){
 
     const HOST = 'http://localhost:8080';
 
-    function errorMessage(message) {
-        $('#toast-error-message').text(message);
-        $('#liveToast').toast('show');
-    }
-
-    function addUserToUserList(userData) {
-        var content = '<tr id="' + userData.id + '">' +
-            '<td scope="row" id="user-id">' + userData.id + '</td>' +
-            '<td scope="row" id="user-name">' + userData.name + '</td>' +
-            '<td scope="row" id="user-surname">' + userData.surname + '</td>' +
-            '<td scope="row" id="user-email">' + userData.username + '</td>' +
-            '<td scope="row" id="user-roles">' + userData.roles + '</td>' +
-            '<td scope="row" id="edit-user"><button type="button" class="btn btn-info">Edit</button></td>' +
-            '<td scope="row" id="delete-user"><button type="button" class="btn btn-danger">Delete</button></td>' +
-            '</tr>'
-
-        $('#nav-admin #users-list-table tbody').append(content);
-    }
-
     // Switch admin panel Tabs
     $('#userTabs button').click(function() {
         $('#nav-admin .active-tab').removeClass('active-tab');
@@ -148,58 +129,40 @@ $(document).ready(function(){
     }
 
     // Edit User (Open Modal)
-    $('#all-users-list-content').delegate('#edit-user button', 'click', async function(e) {
-        const userElement = $(this).closest('tr');
-        const userId = userElement.attr('id');
-
-        $('#editModal').modal('show');
-
-        getOptionRoles($('#editModal #form-select-roles'));
-
-        try {
-            const response = await fetch(HOST + '/user/' + userId, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(await response.text());
-            }
-
-            const userData = await response.json();
-
-            $('#editModal #id').val(userData.id);
-            $('#editModal #name').val(userData.name);
-            $('#editModal #surname').val(userData.surname);
-            $('#editModal #email').val(userData.username);
-
-            userData.roleIds.forEach(role => {
-                $('#editModal #form-select-roles option[value="' + role + '"]').prop('selected', true);
-            });
-
-        } catch (error) {
-            errorMessage(error.message);
-        }
+    $('#all-users-list-content').delegate('#edit-user button', 'click', function() {
+        const userId = $(this).closest('tr').attr('id');
+        openUserModal(userId, 'edit');
     });
 
-// Edit User (request)
-    $('#editModal #edit-user').click(async function(e) {
-        e.preventDefault();
+    // Delete User (Open Modal)
+    $('#all-users-list-content').delegate('#delete-user button', 'click', function() {
+        const userId = $(this).closest('tr').attr('id');
+        openUserModal(userId, 'delete');
+    });
 
+    // Edit or Delete User (request)
+    $('#editModal #edit-user').click(async function () {
+        const action = $('#editModal').attr('data-action');
         const userId = $('#editModal #id').val();
 
-        const data = {
-            name: $('#editModal #name').val(),
-            surname: $('#editModal #surname').val(),
-            username: $('#editModal #email').val(),
-            password: $('#editModal #password').val(),
-            roleIds: $('#editModal #form-select-roles').val()
-        };
+        if (action === 'delete') {
+            const response = await apiRequest(HOST + '/user/' + userId, {
+                method: 'DELETE',
+            });
 
-        try {
-            const response = await fetch(HOST + '/user/' + userId, {
+            if (!response) return;
+            $('#editModal').modal('hide');
+            $('#nav-admin #users-list-table tbody #' + userId).remove();
+        } else if (action === 'edit') {
+            const data = {
+                name: $('#editModal #name').val(),
+                surname: $('#editModal #surname').val(),
+                username: $('#editModal #email').val(),
+                password: $('#editModal #password').val(),
+                roleIds: $('#editModal #form-select-roles').val()
+            };
+
+            const userData = await apiRequest(HOST + '/user/' + userId, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -207,61 +170,52 @@ $(document).ready(function(){
                 body: JSON.stringify(data)
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                errorMessage(errorData.message);
-                return;
-            }
-
-            const userData = await response.json();
+            if (!userData) return;
 
             $('#editModal').modal('hide');
 
             const parent = $('#nav-admin #users-list-table tbody #' + userId);
-
             parent.find('#user-name').text(userData.name);
             parent.find('#user-surname').text(userData.surname);
             parent.find('#user-email').text(userData.username);
-            parent.find('#user-roles').text(userData.roleIds);
-
-        } catch (error) {
-            console.log(error.message);
+            parent.find('#user-roles').text(userData.roles);
         }
     });
 
-    // Delete User (Open modal)
-    $('#all-users-list-content').delegate('#delete-user button', 'click', function() {
-        var userElement = $(this).closest('tr');
+    async function openUserModal(userId, action) {
+        $('#editModal').attr('data-action', action);
+        const isDelete = action === 'delete';
 
-        $('#deleteModal').modal('show');
+        $('#editModal .modal-title').text(isDelete ? 'Delete User' : 'Edit User');
+        $('#editModal input, #editModal select').prop('disabled', isDelete);
+        $('#editModal #edit-user')
+            .text(isDelete ? 'Delete' : 'Edit')
+            .toggleClass('btn-danger', isDelete)
+            .toggleClass('btn-primary', !isDelete);
 
-        getOptionRoles($('#deleteModal #form-select-roles'));
-    });
+        getOptionRoles($('#editModal #form-select-roles'));
 
-    // Delete User (request)
-    $('#deleteModal #delete-user').click(function(e) {
-        e.preventDefault();
-        var userId = $('#deleteModal #id').val();
-
-        console.log(userId);
-
-        $.ajax({
-            type: "DELETE",
-            url: HOST + '/user/' + userId,
-            dataType: 'json',
-            data: data,
-            contentType: 'application/json',
-            success: function(userData) {
-                $('#nav-admin #users-list-table tbody #' + userId).remove();
-
-                $('#deleteModal').modal('hide');
+        const userData = await apiRequest(HOST + '/user/' + userId, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
             },
-            error: function(xhr) {
-                errorMessage(xhr.responseText)
-            }
         });
-    });
 
+        if (!userData) return;
+
+        $('#editModal #id').val(userData.id).prop('disabled', true);
+        $('#editModal #name').val(userData.name);
+        $('#editModal #surname').val(userData.surname);
+        $('#editModal #email').val(userData.username);
+        $('#editModal #password').val('');
+
+        userData.roleIds.forEach(role => {
+            $('#editModal #form-select-roles option[value="' + role + '"]').prop('selected', true);
+        });
+
+        $('#editModal').modal('show');
+    }
 
     async function addUser() {
         const data = {
@@ -272,24 +226,20 @@ $(document).ready(function(){
             roleIds: $('#user-add-content #form-select-roles').val(),
         };
 
-        try {
-            const responseData = await apiRequest(HOST + '/user', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
+        const responseData = await apiRequest(HOST + '/user', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
 
-            if (!responseData) return;
+        if (!responseData) return;
 
-            addUserToUserList(responseData);
+        addUserToUserList(responseData);
 
-            $('#user-add-content input').val('');
-            $('#user-add-content #form-select-roles').val('');
-
-        } catch (error) {
-        }
+        $('#user-add-content input').val('');
+        $('#user-add-content #form-select-roles').val('');
     }
 
     async function apiRequest(url, options = {}) {
@@ -309,7 +259,25 @@ $(document).ready(function(){
 
         } catch (error) {
             console.log(error.message);
-            throw error;
         }
+    }
+
+    function errorMessage(message) {
+        $('#toast-error-message').text(message);
+        $('#liveToast').toast('show');
+    }
+
+    function addUserToUserList(userData) {
+        var content = '<tr id="' + userData.id + '">' +
+            '<td scope="row" id="user-id">' + userData.id + '</td>' +
+            '<td scope="row" id="user-name">' + userData.name + '</td>' +
+            '<td scope="row" id="user-surname">' + userData.surname + '</td>' +
+            '<td scope="row" id="user-email">' + userData.username + '</td>' +
+            '<td scope="row" id="user-roles">' + userData.roles + '</td>' +
+            '<td scope="row" id="edit-user"><button type="button" class="btn btn-info">Edit</button></td>' +
+            '<td scope="row" id="delete-user"><button type="button" class="btn btn-danger">Delete</button></td>' +
+            '</tr>'
+
+        $('#nav-admin #users-list-table tbody').append(content);
     }
 });
