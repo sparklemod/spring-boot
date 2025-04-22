@@ -1,6 +1,41 @@
 $(document).ready(function(){
-
     const HOST = 'http://localhost:8080';
+
+    // Header user info
+    apiRequest(HOST + '/api/get-current-user-info')
+        .then(data => {
+            $('#header-username').text(data.username);
+            $('#header-roles').text(data.roles);
+
+            const isAdmin = data.roles.search(/\bADMIN\b/) >= 0;
+
+            if (isAdmin) {
+                fetch(HOST + '/api/get-users', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(users => {
+                        users.forEach(userData => {
+                            addUserToUserList(userData);
+                        });
+                    })
+                    .catch(error => {
+                        console.log("Ошибка при получении пользователей:", error);
+                        errorMessage(error.message);
+                    });
+            } else {
+                $('#nav-admin').remove();
+                $('#nav-user').addClass('active-section');
+                $('#admin-btn').remove();
+                $('#user-btn').addClass('active');
+            }
+
+            $('#user-info').html(data.username + ' with roles ' + data.roles);
+        });
+
 
     // Switch admin panel Tabs
     $('#userTabs button').click(function() {
@@ -8,23 +43,14 @@ $(document).ready(function(){
 
         var target = $(this).data('target');
 
-        $('#' + target).addClass('active-tab'); //todo посмотреть как без решётки
+        $('#' + target).addClass('active-tab');
 
         if (target == 'user-add-content') {
             getOptionRoles($('#user-add-content #form-select-roles'));
         } else if (target == 'all-users-list-content') {
-            $.ajax({
-                type: "GET",
-                url: HOST + '/user/list',
-                dataType: 'json',
-                contentType: 'application/json',
-                success: function() {
-
-                },
-                error: function(xhr) {
-                    errorMessage(xhr.responseText)
-                }
-            });
+            apiRequest(HOST + '/api/get-users')
+                .then(data => {
+                });
         }
     });
 
@@ -37,43 +63,17 @@ $(document).ready(function(){
     //Switch Sections
     $('#v-pills-tab button').click(function(e) {
         $('#v-pills-tab .active').removeClass('active');
-
         $(this).addClass('active');
-
         $('.section-content-div .active-section').removeClass('active-section');
 
         var target = $(this).data('target');
         $('#' + target).addClass('active-section');
     });
 
-    // Header user info
-    $.ajax({
-        type: "GET",
-        url: HOST + '/user/info',
-        dataType: 'json',
-        contentType: 'application/json',
-        success: function(data) {
-            $('#header-username').text(data.username);
-            $('#header-roles').text(data.roles);
-
-            if (data.roles.search(/\bADMIN\b/) < 0) {
-                $('#nav-admin').remove();
-                $('#nav-user').addClass('active-section');
-                $('#admin-btn').remove();
-                $('#user-btn').addClass('active');
-            }
-
-            $('#user-info').html(data.username + ' with roles ' + data.roles);
-        },
-        error: function(xhr) {
-            errorMessage(xhr.responseText)
-        }
-    });
-
     // About User
     $.ajax({
         type: "GET",
-        url: HOST + '/user/info',
+        url: HOST + '/api/get-current-user-info',
         dataType: 'json',
         contentType: 'application/json',
         success: function(data) {
@@ -82,22 +82,6 @@ $(document).ready(function(){
             $('#nav-user #user-surname').text(data.surname);
             $('#nav-user #user-email').text(data.username);
             $('#nav-user #user-roles').text(data.roles);
-        },
-        error: function(xhr) {
-            errorMessage(xhr.responseText)
-        }
-    });
-
-    //All Users
-    $.ajax({
-        type: "GET",
-        url: HOST + '/user/list',
-        dataType: 'json',
-        contentType: 'application/json',
-        success: function(users) {
-            users.forEach(userData => {
-                addUserToUserList(userData);
-            });
         },
         error: function(xhr) {
             errorMessage(xhr.responseText)
@@ -113,7 +97,7 @@ $(document).ready(function(){
     function getOptionRoles(element) {
         $.ajax({
             type: "GET",
-            url: HOST + '/roles',
+            url: HOST + '/api/get-roles',
             dataType: 'json',
             contentType: 'application/json',
             success: function(roles) {
@@ -146,7 +130,7 @@ $(document).ready(function(){
         const userId = $('#editModal #id').val();
 
         if (action === 'delete') {
-            const response = await apiRequest(HOST + '/user/' + userId, {
+            const response = await apiRequest(HOST + '/api/delete-user/' + userId, {
                 method: 'DELETE',
             });
 
@@ -162,7 +146,7 @@ $(document).ready(function(){
                 roleIds: $('#editModal #form-select-roles').val()
             };
 
-            const userData = await apiRequest(HOST + '/user/' + userId, {
+            const userData = await apiRequest(HOST + '/api/edit-user/' + userId, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -195,7 +179,7 @@ $(document).ready(function(){
 
         getOptionRoles($('#editModal #form-select-roles'));
 
-        const userData = await apiRequest(HOST + '/user/' + userId, {
+        const userData = await apiRequest(HOST + '/api/get-user/' + userId, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -226,7 +210,7 @@ $(document).ready(function(){
             roleIds: $('#user-add-content #form-select-roles').val(),
         };
 
-        const responseData = await apiRequest(HOST + '/user', {
+        const responseData = await apiRequest(HOST + '/api/add-user', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
