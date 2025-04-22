@@ -34,6 +34,11 @@ $(document).ready(function(){
             }
 
             $('#user-info').html(data.username + ' with roles ' + data.roles);
+            $('#nav-user #user-id').text(data.id);
+            $('#nav-user #user-name').text(data.name);
+            $('#nav-user #user-surname').text(data.surname);
+            $('#nav-user #user-email').text(data.username);
+            $('#nav-user #user-roles').text(data.roles);
         });
 
     // Switch admin panel Tabs
@@ -69,47 +74,11 @@ $(document).ready(function(){
         $('#' + target).addClass('active-section');
     });
 
-    // About User
-    $.ajax({
-        type: "GET",
-        url: HOST + '/api/get-current-user-info',
-        dataType: 'json',
-        contentType: 'application/json',
-        success: function(data) {
-            $('#nav-user #user-id').text(data.id);
-            $('#nav-user #user-name').text(data.name);
-            $('#nav-user #user-surname').text(data.surname);
-            $('#nav-user #user-email').text(data.username);
-            $('#nav-user #user-roles').text(data.roles);
-        },
-        error: function(xhr) {
-            errorMessage(xhr.responseText)
-        }
-    });
-
     // Create User
     $('#create-user').on("click", function(e){
         e.preventDefault();
         addUser();
     })
-
-    function getOptionRoles(element) {
-        $.ajax({
-            type: "GET",
-            url: HOST + '/api/get-roles',
-            dataType: 'json',
-            contentType: 'application/json',
-            success: function(roles) {
-                roles.forEach(role => {
-                    var option = '<option value="' + role.id + '">' + role.name + '</option>';
-                    element.append(option);
-                });
-            },
-            error: function(xhr) {
-                errorMessage(xhr.responseText)
-            }
-        });
-    }
 
     // Edit User (Open Modal)
     $('#all-users-list-content').delegate('#edit-user button', 'click', function() {
@@ -198,6 +167,16 @@ $(document).ready(function(){
         });
 
         $('#editModal').modal('show');
+    }
+
+    async function getOptionRoles(element) {
+        const roles = await apiRequest(HOST + '/api/get-roles');
+        if (roles) {
+            roles.forEach(role => {
+                const option = `<option value="${role.id}">${role.name}</option>`;
+                element.append(option);
+            });
+        }
     }
 
     async function addUser() {
