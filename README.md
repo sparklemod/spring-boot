@@ -1,4 +1,4 @@
-# Spring Boot + Spring Security + JPA
+# Spring Boot + Spring Security + JPA (RESTful API )
 
 ### Запуск проекта
 1. Склонируйте проект `git clone https://github.com/sparklemod/spring-boot.git`
