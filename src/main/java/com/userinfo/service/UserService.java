@@ -1,5 +1,7 @@
 package com.userinfo.service;
 
+import com.userinfo.controller.dto.CustomException;
+import com.userinfo.security.CustomUserDetails;
 import com.userinfo.model.Dto.UserDto;
 import com.userinfo.model.Role;
 import com.userinfo.model.User;
@@ -7,17 +9,14 @@ import com.userinfo.repository.RoleRepository;
 import com.userinfo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -34,40 +33,70 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository
-                .findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User user = userRepository.findByUsername(username)
+                                  .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return new CustomUserDetails(
+                user.getId(),
+                user.getName(),
+                user.getSurname(),
+                user.getUsername(),
+                user.getPassword(),
+                user.getRoles()
+        );
     }
 
     public Optional<User> findUserByUsername(String username) {
         return userRepository.findByUsername(username);
     }
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserDto> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        List<UserDto> userDtoList = new ArrayList<>();
+
+        for (User user : users) {
+            userDtoList.add(getUserDto(user));
+        }
+
+        return userDtoList;
     }
 
-    public void addUser(UserDto userDto) throws Exception {
+    private UserDto getUserDto(User user) {
+        UserDto userDto = new UserDto();
+        userDto.setId(user.getId());
+        userDto.setName(user.getName());
+        userDto.setSurname(user.getSurname());
+        userDto.setUsername(user.getUsername());
+        userDto.setRoleIds(user.getRoleIds());
+        userDto.setRoles(user.getRoles().toString());
+
+        return userDto;
+    }
+
+    public void addUser(UserDto userDto) {
         Optional<User> existingUser = userRepository.findByUsername(userDto.getUsername());
         if (existingUser.isPresent()) {
-            throw new Exception("This username already existed");
+            throw new CustomException(HttpStatus.BAD_REQUEST, "This username already exist");
         }
 
         if (userDto.getPassword() == null || userDto.getPassword().isEmpty()) {
-            throw new Exception("Enter password");
+            throw new CustomException(HttpStatus.BAD_REQUEST, "Enter password");
         }
 
-        saveUser(userDto, new User());
+        User user = new User();
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+
+        saveUser(userDto, user);
     }
 
-    public void editUser(UserDto userDto) throws Exception {
+    public void editUser(UserDto userDto) {
         User existingUser = userRepository
                 .findById(userDto.getId())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new CustomException(HttpStatus.BAD_REQUEST, "User not found"));
 
-        Optional<User> sameUsernameUser = userRepository.findByUsername(userDto.getUsername());
+        Optional<User> sameUsernameUser = userRepository.findWithSameUsername(userDto.getUsername(), userDto.getId());
         if (sameUsernameUser.isPresent()) {
-            throw new Exception("This username already existed");
+            throw new CustomException(HttpStatus.BAD_REQUEST, "This username already exist");
         }
 
         if (userDto.getPassword() != null && !userDto.getPassword().isEmpty()) {
@@ -79,16 +108,7 @@ public class UserService implements UserDetailsService {
 
     public UserDto getUserDto(Long id) {
         User user = userRepository.findById(id).orElseThrow(() ->  new UsernameNotFoundException("User not found"));
-
-        UserDto userDto = new UserDto();
-        userDto.setId(user.getId());
-        userDto.setName(user.getName());
-        userDto.setSurname(user.getSurname());
-        userDto.setUsername(user.getUsername());
-        userDto.setPassword(user.getPassword());
-        userDto.setRoleIds(user.getRoles().stream().map(Role::getId).collect(Collectors.toList()));
-
-        return userDto;
+        return getUserDto(user);
     }
 
     public void deleteUser(Long id) {
@@ -96,19 +116,22 @@ public class UserService implements UserDetailsService {
     }
 
     private void saveUser(UserDto userDto, User user) {
-        Set<Role> selectedRoles = roleRepository.findByIdIn(userDto.getRoleIds());
-
         user.setName(userDto.getName());
         user.setSurname(userDto.getSurname());
         user.setUsername(userDto.getUsername());
 
-        if (selectedRoles.isEmpty()) {
+        if (userDto.getRoleIds().isEmpty()) {
             Role userRole = roleRepository.findByName(Role.USER);
             user.getRoles().add(userRole);
         } else {
+            Set<Role> selectedRoles = roleRepository.findByIdIn(userDto.getRoleIds());
             user.setRoles(selectedRoles);
         }
 
-        userRepository.save(user);
+        Long id = userRepository.save(user).getId();
+
+        userDto.setRoles(user.getRoles().toString());
+        userDto.setPassword(null);
+        userDto.setId(id);
     }
 }

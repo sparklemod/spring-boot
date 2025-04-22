@@ -3,8 +3,8 @@ $(document).ready(function(){
     const HOST = 'http://localhost:8080';
 
     function errorMessage(message) {
-        $('#liveToast').toast('show');
         $('#toast-error-message').text(message);
+        $('#liveToast').toast('show');
     }
 
     function addUserToUserList(userData) {
@@ -12,9 +12,8 @@ $(document).ready(function(){
             '<td scope="row" id="user-id">' + userData.id + '</td>' +
             '<td scope="row" id="user-name">' + userData.name + '</td>' +
             '<td scope="row" id="user-surname">' + userData.surname + '</td>' +
-            '<td scope="row" id="age">' + userData.age + '</td>' +
-            '<td scope="row" id="user-email">' + userData.email + '</td>' +
-            '<td scope="row" id="user-roles">[' + userData.roles + ']</td>' + //todo строка или нет????
+            '<td scope="row" id="user-email">' + userData.username + '</td>' +
+            '<td scope="row" id="user-roles">' + userData.roles + '</td>' +
             '<td scope="row" id="edit-user"><button type="button" class="btn btn-info">Edit</button></td>' +
             '<td scope="row" id="delete-user"><button type="button" class="btn btn-danger">Delete</button></td>' +
             '</tr>'
@@ -35,7 +34,7 @@ $(document).ready(function(){
         } else if (target == 'all-users-list-content') {
             $.ajax({
                 type: "GET",
-                url: HOST + '/users',
+                url: HOST + '/user/list',
                 dataType: 'json',
                 contentType: 'application/json',
                 success: function() {
@@ -73,7 +72,7 @@ $(document).ready(function(){
         dataType: 'json',
         contentType: 'application/json',
         success: function(data) {
-            $('#header-username').text(data.email);
+            $('#header-username').text(data.username);
             $('#header-roles').text(data.roles);
 
             if (data.roles.search(/\bADMIN\b/) < 0) {
@@ -83,7 +82,7 @@ $(document).ready(function(){
                 $('#user-btn').addClass('active');
             }
 
-            $('#user-info').html(data.email + ' with roles ' + data.roles);
+            $('#user-info').html(data.username + ' with roles ' + data.roles);
         },
         error: function(xhr) {
             errorMessage(xhr.responseText)
@@ -93,16 +92,15 @@ $(document).ready(function(){
     // About User
     $.ajax({
         type: "GET",
-        url: HOST + '/user',
+        url: HOST + '/user/info',
         dataType: 'json',
         contentType: 'application/json',
         success: function(data) {
             $('#nav-user #user-id').text(data.id);
             $('#nav-user #user-name').text(data.name);
             $('#nav-user #user-surname').text(data.surname);
-            $('#nav-user #age').text(data.age);
-            $('#nav-user #user-email').text(data.email);
-            $('#nav-user #user-roles').text('[' + data.roles + ']');
+            $('#nav-user #user-email').text(data.username);
+            $('#nav-user #user-roles').text(data.roles);
         },
         error: function(xhr) {
             errorMessage(xhr.responseText)
@@ -112,7 +110,7 @@ $(document).ready(function(){
     //All Users
     $.ajax({
         type: "GET",
-        url: HOST + '/users',
+        url: HOST + '/user/list',
         dataType: 'json',
         contentType: 'application/json',
         success: function(users) {
@@ -128,36 +126,7 @@ $(document).ready(function(){
     // Create User
     $('#create-user').on("click", function(e){
         e.preventDefault();
-
-        var data = {
-            firstName: $('#user-add-content #name').val(),
-            lastName: $('#user-add-content #surname').val(),
-            email: $('#user-add-content #email').val(),
-            age: $('#user-add-content #age').val(),
-            password: $('#user-add-content #password').val(),
-            roles: $('#user-add-content #form-select-roles').val() //todo а нужна ошибка если пусто???
-        }
-
-        $.ajax({
-            type: "POST",
-            url: HOST + '/user',
-            data: data,
-            dataType: 'json',
-            contentType: 'application/json',
-            success: function(responseData) {
-                addUserToUserList(responseData);
-
-                $('#user-add-content #name').val('');
-                $('#user-add-content #surname').val('');
-                $('#user-add-content #age').val('');
-                $('#user-add-content #email').val('');
-                $('#user-add-content #password').val('');
-                $('#user-add-content #form-select-roles').val('');
-            },
-            error: function(xhr) {
-                errorMessage(xhr.responseText)
-            }
-        });
+        addUser();
     })
 
     function getOptionRoles(element) {
@@ -168,7 +137,7 @@ $(document).ready(function(){
             contentType: 'application/json',
             success: function(roles) {
                 roles.forEach(role => {
-                    var option = '<option value="' + role.id + '">' + role.role + '</option>';
+                    var option = '<option value="' + role.id + '">' + role.name + '</option>';
                     element.append(option);
                 });
             },
@@ -179,78 +148,85 @@ $(document).ready(function(){
     }
 
     // Edit User (Open Modal)
-    $('#all-users-list-content').delegate('#edit-user button', 'click', function(e) {
-        var userElement = $(this).closest('tr');
-        var userId = userElement.attr('id');
+    $('#all-users-list-content').delegate('#edit-user button', 'click', async function(e) {
+        const userElement = $(this).closest('tr');
+        const userId = userElement.attr('id');
 
         $('#editModal').modal('show');
 
         getOptionRoles($('#editModal #form-select-roles'));
 
-        $.ajax({
-            type: "GET",
-            url: HOST + '/user/' + userId,
-            dataType: 'json',
-            contentType: 'application/json',
-            success: function(userData) {
-                $('#editModal #id').val(userData.id);
-                $('#editModal #name').val(userData.name);
-                $('#editModal #surname').val(userData.surname);
-                $('#editModal #age').val(userData.age);
-                $('#editModal #email').val(userData.email);
+        try {
+            const response = await fetch(HOST + '/user/' + userId, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
-                userData.roles.forEach(role => {
-                    $('#editModal #form-select-roles option[value="' + role + '"]').attr('selected', 'selected');
-                });
-            },
-            error: function(xhr) {
-                errorMessage(xhr.responseText)
+            if (!response.ok) {
+                throw new Error(await response.text());
             }
-        });
+
+            const userData = await response.json();
+
+            $('#editModal #id').val(userData.id);
+            $('#editModal #name').val(userData.name);
+            $('#editModal #surname').val(userData.surname);
+            $('#editModal #email').val(userData.username);
+
+            userData.roleIds.forEach(role => {
+                $('#editModal #form-select-roles option[value="' + role + '"]').prop('selected', true);
+            });
+
+        } catch (error) {
+            errorMessage(error.message);
+        }
     });
 
-    // Edit User (request)
-    $('#editModal #edit-user').click(function(e) {
+// Edit User (request)
+    $('#editModal #edit-user').click(async function(e) {
         e.preventDefault();
 
-        var userId = $('#editModal #id').val();
+        const userId = $('#editModal #id').val();
 
-        var data = {
-            firstName: $('#editModal #name').val(),
-            lastName: $('#editModal #surname').val(),
-            email: $('#editModal #email').val(),
+        const data = {
+            name: $('#editModal #name').val(),
+            surname: $('#editModal #surname').val(),
+            username: $('#editModal #email').val(),
             password: $('#editModal #password').val(),
-            age: $('#editModal #age').val(),
-            roles: $('#editModal #form-select-roles').val()
-        }
+            roleIds: $('#editModal #form-select-roles').val()
+        };
 
-        $.ajax({
-            type: "PUT",
-            url: HOST + '/user/' + userId,
-            dataType: 'json',
-            data: data,
-            contentType: 'application/json',
-            success: function(userData) {
-                $('#editModal #name').val('');
-                $('#editModal #surname').val('');
-                $('#editModal #email').val('');
-                $('#editModal #age').val('');
-                $('#editModal #password').val('');
-                $('#editModal #form-select-roles').val('');
+        try {
+            const response = await fetch(HOST + '/user/' + userId, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
 
-                var parent = $('#nav-admin #users-list-table tbody #' + userId);
-
-                parent.find('#user-name').text(userData.firstName);
-                parent.find('#user-surname').text(userData.lastName);
-                parent.find('#user-email').text(userData.email);
-                parent.find('#user-roles').text(userData.roles);
-
-                $('#editModal').modal('hide');
-            },
-            error: function(xhr) {
-                errorMessage(xhr.responseText)
+            if (!response.ok) {
+                const errorData = await response.json();
+                errorMessage(errorData.message);
+                return;
             }
-        });
+
+            const userData = await response.json();
+
+            $('#editModal').modal('hide');
+
+            const parent = $('#nav-admin #users-list-table tbody #' + userId);
+
+            parent.find('#user-name').text(userData.name);
+            parent.find('#user-surname').text(userData.surname);
+            parent.find('#user-email').text(userData.username);
+            parent.find('#user-roles').text(userData.roleIds);
+
+        } catch (error) {
+            console.log(error.message);
+        }
     });
 
     // Delete User (Open modal)
@@ -265,8 +241,9 @@ $(document).ready(function(){
     // Delete User (request)
     $('#deleteModal #delete-user').click(function(e) {
         e.preventDefault();
-
         var userId = $('#deleteModal #id').val();
+
+        console.log(userId);
 
         $.ajax({
             type: "DELETE",
@@ -285,17 +262,54 @@ $(document).ready(function(){
         });
     });
 
-    // Logout
-    $('#logout-btn').click(function() {
-        $.ajax({
-            type: "POST",
-            url: HOST + '/logout',
-            dataType: 'json',
-            data: data,
-            contentType: 'application/json',
-            error: function(xhr) {
-                errorMessage(xhr.responseText)
+
+    async function addUser() {
+        const data = {
+            name: $('#user-add-content #name').val(),
+            surname: $('#user-add-content #surname').val(),
+            username: $('#user-add-content #email').val(),
+            password: $('#user-add-content #password').val(),
+            roleIds: $('#user-add-content #form-select-roles').val(),
+        };
+
+        try {
+            const responseData = await apiRequest(HOST + '/user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!responseData) return;
+
+            addUserToUserList(responseData);
+
+            $('#user-add-content input').val('');
+            $('#user-add-content #form-select-roles').val('');
+
+        } catch (error) {
+        }
+    }
+
+    async function apiRequest(url, options = {}) {
+        try {
+            const response = await fetch(url, options);
+
+            const isJson = response.headers.get("content-type")?.includes("application/json");
+            const data = isJson ? await response.json() : null;
+
+            if (!response.ok) {
+                const message = data?.message || 'Произошла ошибка';
+                errorMessage(message);
+                throw new Error(message);
             }
-        });
-    });
+
+            return data;
+
+        } catch (error) {
+            console.log(error.message);
+            throw error;
+        }
+    }
 });

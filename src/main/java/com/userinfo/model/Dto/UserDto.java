@@ -1,6 +1,7 @@
 package com.userinfo.model.Dto;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
 import java.util.List;
 
@@ -12,11 +13,13 @@ public class UserDto {
     private String surname;
 
     @Email(message = "Invalid email format")
+    @NotBlank(message = "Enter email")
     private String username;
 
     private String password;
 
     private List<Long> roleIds;
+    private String roles;
 
     public UserDto() {
     }
@@ -67,5 +70,13 @@ public class UserDto {
 
     public void setRoleIds(List<Long> roleIds) {
         this.roleIds = roleIds;
+    }
+
+    public String getRoles() {
+        return roles;
+    }
+
+    public void setRoles(String roles) {
+        this.roles = roles;
     }
 }
