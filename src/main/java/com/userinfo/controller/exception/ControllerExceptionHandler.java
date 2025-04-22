@@ -18,7 +18,7 @@ public class ControllerExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<?> handleRuntimeException(RuntimeException e) {
-        return new ResponseEntity<>(new ErrorResponse(new Date(), HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage()),
+        return new ResponseEntity<>(new ErrorResponse(new Date(), HttpStatus.INTERNAL_SERVER_ERROR.value(), "adsad"),
                                     HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -37,8 +37,8 @@ public class ControllerExceptionHandler {
                          .map(DefaultMessageSourceResolvable::getDefaultMessage)
                          .collect(Collectors.joining(", "));
 
-        return new ResponseEntity<>(new ErrorResponse(new Date(), e.getStatusCode().value(), errors),
-                                    e.getStatusCode());
+        return new ResponseEntity<>(new ErrorResponse(new Date(), HttpStatus.BAD_REQUEST.value(), errors),
+                                    HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

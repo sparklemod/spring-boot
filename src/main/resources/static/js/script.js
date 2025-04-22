@@ -36,7 +36,6 @@ $(document).ready(function(){
             $('#user-info').html(data.username + ' with roles ' + data.roles);
         });
 
-
     // Switch admin panel Tabs
     $('#userTabs button').click(function() {
         $('#nav-admin .active-tab').removeClass('active-tab');

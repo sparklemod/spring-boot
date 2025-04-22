@@ -1,19 +1,24 @@
-# Spring Boot + Spring Security + JPA (RESTful API )
+# Spring Boot + Spring Security + JPA (REST API)
 
-### Запуск проекта
-1. Склонируйте проект `git clone https://github.com/sparklemod/spring-boot.git`
-2. Запустите контейнер с БД `docker-compose up -d --build`
-3. Выполните команду `mvn spring-boot:run`
+### Launching the project
+1. Add project `git clone https://github.com/sparklemod/spring-boot.git`
+2. Run container with the DB `docker-compose up -d --build`
+3. Run the command `mvn clean install spring-boot:run`
 
-Таблица и начальные данные создаются автоматически
+The table and initial data are created automatically
 
+## Api
+http://localhost:8080/swagger-ui/index.html
+![ALT TEXT](samples/swagger.png)
+
+## Interface
 ![ALT TEXT](samples/main.png)
 
-Редактирование
+Edit User
 ![ALT TEXT](samples/edit.png)
-Создание
+Create User
 ![ALT TEXT](samples/create.png)
-Страница для пользователя
+User Role Interface
 ![ALT TEXT](samples/user.png)
-Форма авторизации
+Login form
 ![ALT TEXT](samples/login.png)
