@@ -19,8 +19,8 @@ public class DataLoader {
     private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    public DataLoader(UserRepository UserRepository, RoleRepository roleRepository, BCryptPasswordEncoder passwordEncoder) {
-        this.userRepository = UserRepository;
+    public DataLoader(UserRepository userRepository, RoleRepository roleRepository, BCryptPasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
     }
