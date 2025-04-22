@@ -1,4 +1,4 @@
-package com.userinfo.controller.dto;
+package com.userinfo.controller.exception;
 
 import org.springframework.http.HttpStatus;
 

@@ -1,10 +1,10 @@
 package com.userinfo.controller.exception;
 
-import com.userinfo.controller.dto.CustomException;
 import com.userinfo.controller.dto.ErrorResponse;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -24,7 +24,7 @@ public class ControllerExceptionHandler {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(CustomException.class)
-    public ResponseEntity<?> handleRuntimeException2(CustomException e) {
+    public ResponseEntity<?> handleCustomException(CustomException e) {
         return new ResponseEntity<>(new ErrorResponse(new Date(), e.getStatus().value(), e.getMessage()),
                                     e.getStatus());
     }
@@ -41,8 +41,9 @@ public class ControllerExceptionHandler {
                                     e.getStatusCode());
     }
 
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<?> handleUnauthorized(UnauthorizedException e) {
-        return ResponseEntity.status(401).body(new ErrorResponse(new Date(), 401, e.getMessage()));
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<?> handleForbiddenException(AccessDeniedException e) {
+        return new ResponseEntity<>(new ErrorResponse(new Date(), HttpStatus.FORBIDDEN.value(), e.getMessage()),
+                                    HttpStatus.FORBIDDEN);
     }
 }
