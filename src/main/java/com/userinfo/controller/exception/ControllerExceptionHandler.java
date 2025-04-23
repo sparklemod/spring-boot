@@ -17,20 +17,20 @@ import java.util.stream.Collectors;
 public class ControllerExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<?> handleRuntimeException(RuntimeException e) {
-        return new ResponseEntity<>(new ErrorResponse(new Date(), HttpStatus.INTERNAL_SERVER_ERROR.value(), "adsad"),
+    public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException e) {
+        return new ResponseEntity<>(new ErrorResponse(new Date(), HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage()),
                                     HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(CustomException.class)
-    public ResponseEntity<?> handleCustomException(CustomException e) {
+    public ResponseEntity<ErrorResponse> handleCustomException(CustomException e) {
         return new ResponseEntity<>(new ErrorResponse(new Date(), e.getStatus().value(), e.getMessage()),
                                     e.getStatus());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Object> handleValidationExceptions(MethodArgumentNotValidException e) {
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException e) {
         String errors = e.getBindingResult()
                          .getAllErrors()
                          .stream()
@@ -42,7 +42,7 @@ public class ControllerExceptionHandler {
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<?> handleForbiddenException(AccessDeniedException e) {
+    public ResponseEntity<ErrorResponse> handleForbiddenException(AccessDeniedException e) {
         return new ResponseEntity<>(new ErrorResponse(new Date(), HttpStatus.FORBIDDEN.value(), e.getMessage()),
                                     HttpStatus.FORBIDDEN);
     }

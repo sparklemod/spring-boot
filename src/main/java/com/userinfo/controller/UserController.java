@@ -2,7 +2,7 @@ package com.userinfo.controller;
 
 import com.userinfo.model.Role;
 import com.userinfo.security.CustomUserDetails;
-import com.userinfo.model.Dto.UserDto;
+import com.userinfo.model.dto.UserDto;
 import com.userinfo.service.RoleService;
 import com.userinfo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;

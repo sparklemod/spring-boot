@@ -2,7 +2,7 @@ package com.userinfo.service;
 
 import com.userinfo.controller.exception.CustomException;
 import com.userinfo.security.CustomUserDetails;
-import com.userinfo.model.Dto.UserDto;
+import com.userinfo.model.dto.UserDto;
 import com.userinfo.model.Role;
 import com.userinfo.model.User;
 import com.userinfo.repository.RoleRepository;

@@ -7,12 +7,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 
 public class CustomUserDetails implements UserDetails, CredentialsContainer {
-    private Long id;
-    private String name;
-    private String surname;
-    private String username;
+    private final Long id;
+    private final String name;
+    private final String surname;
+    private final String username;
     private String password;
-    private Collection<? extends GrantedAuthority> authorities;
+    private final Collection<? extends GrantedAuthority> authorities;
 
     public CustomUserDetails(Long id, String name, String surname, String username, String password,
                              Collection<? extends GrantedAuthority> authorities) {
